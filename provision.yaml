@@ -1,0 +1,100 @@
+---
+- name: "Provision Machine"
+  hosts: groupA
+  serial: 1
+
+  tasks:
+    - name: showmsg
+      debug:
+        msg: "Ready to provision system"
+    
+    - name: check os
+      debug:
+        msg: "{{ansible_distribution}}" 
+    
+    - name: showuser
+      debug:
+        msg: "{{ansible_user}}"
+
+    # - name: upgrade packages (Debian)
+    #   apt:
+    #     update_cache: yes
+    #     upgrade: yes
+    #   become: true
+    #   when: ansible_distribution == "Debian"
+
+    # - name: install netselect-apt for debian
+    #   apt:
+    #     name: netselect-apt
+    #   become: true
+    #   when: ansible_distribution == "Debian"
+
+    # - name: run netselect-apt for debian
+    #   command:
+    #     argv:
+    #       - netselect-apt
+    #       - "-cCanada"
+    #       - "-o /tmp/sources.list"
+    #   become: true
+    #   when: ansible_distribution == "Debian"
+    
+    # - name: cp source.list to /etc/apt/
+    #   copy:
+    #     src: /tmp/sources.list
+    #     dest: /etc/apt/sources.list
+    #     remote_src: yes
+    #     mode: '0644'
+    #   become: true
+    #   when: ansible_distribution == "Debian"
+
+    # - name: install necessary packages (Debian)
+    #   apt:
+    #     update_cache: yes
+    #     pkg:
+    #       - git
+    #       - build-essential
+    #       - zsh
+    #       - python3-pip
+    #       - vim
+    #       - htop
+    #       - tmux
+    #       - numix-gtk-theme
+    #       - numix-icon-theme
+    #       - fonts-noto
+    #       - fonts-noto-cjk
+    #       - fonts-ibm-plex
+    #   become: true
+    #   when: ansible_distribution == "Debian"
+
+    # - name: Check if Hypervisor
+    #   shell: dmesg | grep "Hypervisor"
+    #   become: true
+    #   register: isvm
+    #   failed_when: isvm.rc != 0 and isvm.rc != 1
+
+    # - name: Install open-vm-tools for vm
+    #   apt:
+    #     name: open-vm-tools-desktop
+    #   become: true
+    #   when: isvm.stdout and ansible_distribution == "Debian"
+
+    - name: Clone oh-my-zsh github repo
+      git:
+        repo: 'http://github.com/robbyrussell/oh-my-zsh.git'
+        dest: '/home/{{ansible_user}}/.oh-my-zsh'
+        update: no
+
+    # Using official .zshrc for now. later may use own zshrc
+    - name: Install oh-my-zsh
+      copy:
+        src: /home/{{ansible_user}}/.oh-my-zsh/templates/zshrc.zsh-template
+        dest: /home/{{ansible_user}}/.zshrc
+        remote_src: yes
+
+    # chsh for user
+    - name: Chsh to zsh
+      command: 'chsh -s /bin/zsh {{ansible_user}}'
+      become: true
+
+    # Install font_config_file
+        
