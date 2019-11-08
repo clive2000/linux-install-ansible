@@ -1,6 +1,6 @@
 ---
 - name: "Provision Machine"
-  hosts: groupA
+  hosts: groupB
   serial: 1
 
   tasks:
@@ -15,68 +15,157 @@
     - name: showuser
       debug:
         msg: "{{ansible_user}}"
+        
+    - name: clean apt cache
+      command: 'apt-get clean'
+      become: true
+      warn: false
+      when: ansible_distribution == "Debian"
 
-    # - name: upgrade packages (Debian)
-    #   apt:
-    #     update_cache: yes
-    #     upgrade: yes
-    #   become: true
-    #   when: ansible_distribution == "Debian"
+    - name: install netselect-apt for debian
+      apt:
+        name: netselect-apt
+        update_cache: yes
+      become: true
+      when: ansible_distribution == "Debian"
 
-    # - name: install netselect-apt for debian
-    #   apt:
-    #     name: netselect-apt
-    #   become: true
-    #   when: ansible_distribution == "Debian"
-
-    # - name: run netselect-apt for debian
-    #   command:
-    #     argv:
-    #       - netselect-apt
-    #       - "-cCanada"
-    #       - "-o /tmp/sources.list"
-    #   become: true
-    #   when: ansible_distribution == "Debian"
+    - name: run netselect-apt for debian
+      command:
+        argv:
+          - netselect-apt
+          - "-cCanada"
+          - "-o /tmp/sources.list"
+      become: true
+      when: ansible_distribution == "Debian"
     
-    # - name: cp source.list to /etc/apt/
-    #   copy:
-    #     src: /tmp/sources.list
-    #     dest: /etc/apt/sources.list
-    #     remote_src: yes
-    #     mode: '0644'
-    #   become: true
-    #   when: ansible_distribution == "Debian"
+    - name: cp source.list to /etc/apt/
+      copy:
+        src: /tmp/sources.list
+        dest: /etc/apt/sources.list
+        remote_src: yes
+        mode: '0644'
+      become: true
+      when: ansible_distribution == "Debian"
 
-    # - name: install necessary packages (Debian)
-    #   apt:
-    #     update_cache: yes
-    #     pkg:
-    #       - git
-    #       - build-essential
-    #       - zsh
-    #       - python3-pip
-    #       - vim
-    #       - htop
-    #       - tmux
-    #       - numix-gtk-theme
-    #       - numix-icon-theme
-    #       - fonts-noto
-    #       - fonts-noto-cjk
-    #       - fonts-ibm-plex
-    #   become: true
-    #   when: ansible_distribution == "Debian"
+    - name: upgrade packages (Debian)
+      apt:
+        update_cache: yes
+        upgrade: yes
+      become: true
+      when: ansible_distribution == "Debian"
 
-    # - name: Check if Hypervisor
-    #   shell: dmesg | grep "Hypervisor"
-    #   become: true
-    #   register: isvm
-    #   failed_when: isvm.rc != 0 and isvm.rc != 1
+    - name: install necessary packages (Debian)
+      apt:
+        update_cache: yes
+        pkg:
+          - git
+          - build-essential
+          - zsh
+          - python3-pip
+          - vim
+          - htop
+          - tmux
+          - numix-gtk-theme
+          - numix-icon-theme
+          - fonts-noto
+          - fonts-noto-cjk
+          - fonts-ibm-plex
+          - lightdm-gtk-greeter-settings
+      become: true
+      when: ansible_distribution == "Debian"
 
-    # - name: Install open-vm-tools for vm
-    #   apt:
-    #     name: open-vm-tools-desktop
-    #   become: true
-    #   when: isvm.stdout and ansible_distribution == "Debian"
+    - name: Check if Hypervisor
+      shell: dmesg | grep "Hypervisor"
+      become: true
+      register: isvm
+      failed_when: isvm.rc != 0 and isvm.rc != 1
+
+    - name: Install open-vm-tools for vm
+      apt:
+        name: open-vm-tools-desktop
+      become: true
+      when: isvm.stdout and ansible_distribution == "Debian"
+
+    - name: download microsoft.asc
+      get_url:
+        url: 'https://packages.microsoft.com/keys/microsoft.asc'
+        dest: '/tmp/microsoft.asc'
+        mode: '0644'
+      when: ansible_distribution == "Debian"
+
+    - name: Decrypt asc to gpg
+      command: 'gpg --dearmor --yes /tmp/microsoft.asc'
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Copy gpg to /usr/share/keyrings
+      copy:
+        src: '/tmp/microsoft.asc.gpg'
+        dest:  '/usr/share/keyrings/packages.microsoft.gpg'
+        mode: '0644'
+        remote_src: yes
+        force: no
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Add msft repository
+      shell: 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Install vscode
+      apt: 
+        name: code
+        update_cache: yes
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Add docker gpg
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Add docker repo
+      apt_repository:
+        repo: 'deb https://download.docker.com/linux/debian {{ansible_distribution_release}} stable'
+        state: present
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Update apt and install docker-ce
+      apt: 
+        update_cache: yes 
+        pkg:
+          - docker-ce 
+          - docker-ce-cli
+          - containerd.io
+        state: latest
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Add user to docker group
+      command: "{{item}}"
+      with_items:
+        - 'usermod -aG docker {{ansible_user}}'
+        - 'systemctl enable docker'
+      become: true
+      when: ansible_distribution == "Debian"
+
+    - name: Download rustup-init
+      get_url:
+        url: 'https://sh.rustup.rs'
+        dest: '/tmp/rustup-init.sh'
+        mode: '0644'
+
+    - name: Install rust
+      shell: |
+        if [ ! -d "/home/{{ansible_user}}/.cargo" ]; then
+          bash /tmp/rustup-init.sh -y
+        else
+          echo 'rust already exist'
+        fi
 
     - name: Clone oh-my-zsh github repo
       git:
@@ -91,10 +180,29 @@
         dest: /home/{{ansible_user}}/.zshrc
         remote_src: yes
 
+    # Install zsh-nvm (Plugin for nvm in zsh)
+    - name: Install zsh-nvm
+      git:
+        repo: 'https://github.com/lukechilds/zsh-nvm.git'
+        dest: '/home/{{ansible_user}}/.oh-my-zsh/custom/plugins/zsh-nvm'
+
     # chsh for user
     - name: Chsh to zsh
       command: 'chsh -s /bin/zsh {{ansible_user}}'
       become: true
 
-    # Install font_config_file
-        
+
+    # Clone dotfiles git repo
+    - name: Clone dot files git repo
+      git:
+        repo: 'https://github.com/clive2000/dotfiles.git'
+        dest: '/tmp/dotfiles'
+
+    - name: install dotfiles
+      command: 'bash install.sh'
+      args:
+        chdir: '/tmp/dotfiles'
+
+    - name: reboot
+      reboot:
+      become: true

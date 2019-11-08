@@ -1,0 +1,14 @@
+---
+- name: Get debug info
+  hosts: groupA
+  serial: 1
+  
+  tasks:
+    - name: Get installed packages
+      package_facts:
+        manager: auto
+      become: true
+    
+    - name: Show installed packags
+      debug:
+        var: ansible_facts.packages
