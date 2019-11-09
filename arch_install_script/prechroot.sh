@@ -14,6 +14,6 @@ genfstab -U /mnt » /mnt/etc/fstab
 
 cp postchroot.sh /mnt/root
 
-arch-chroot /mnt /bin/bash
+arch-chroot /mnt /bin/bash /root/postchroot.sh
 
 
