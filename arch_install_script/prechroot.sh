@@ -2,7 +2,7 @@ timedatectl set-ntp true
 
 # Fastmirror
 pacman -Syy
-pacman -S reflector
+pacman --noconfirm -S reflector
 reflector --country 'United States' --country Canada --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syy
 
