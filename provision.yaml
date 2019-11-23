@@ -11,14 +11,14 @@
       with_items:
         - "{{ansible_distribution}}" 
         - "{{ansible_user}}"
-
-    - include: os/{{ansible_distribution|lower}}.yml
         
     - name: Check if Hypervisor
       shell: dmesg | grep "Hypervisor"
       become: true
       register: isvm
       failed_when: isvm.rc != 0 and isvm.rc != 1
+      
+    - include: os/{{ansible_distribution|lower}}.yml
 
     - name: Add user to docker group
       command: "{{item}}"
