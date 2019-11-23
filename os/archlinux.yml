@@ -1,0 +1,10 @@
+---
+
+- name: showmsg
+  debug:
+    msg: "{{item}}"
+  with_items:
+    - "{{ansible_distribution}}" 
+    - "{{ansible_user}}"
+
+

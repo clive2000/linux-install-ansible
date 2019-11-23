@@ -2,11 +2,13 @@
 
 Before invoke the **prechoot.sh** script. You must format the disk. Mount *home* and *boot*. Set up swap.
 
+Gdisk tips: use `ef00` for EFI partition. `8200` for linux swap. `8300` for linux filesystem
+
 ```bash
 lsblk
 gdisk /dev/sdX
 
-mkfs.vat -F32 /dev/sdXN
+mkfs.vfat -F32 /dev/sdXN
 mkswap /dev/sdXN
 mkfs.ext4 /dev/sdXN
 swapon /dev/sdXN

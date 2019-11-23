@@ -1,14 +1,23 @@
 ---
 - name: Get debug info
-  hosts: groupA
+  hosts: all
   serial: 1
   
   tasks:
-    - name: Get installed packages
-      package_facts:
-        manager: auto
-      become: true
-    
-    - name: Show installed packags
+    - name: showmsg
       debug:
-        var: ansible_facts.packages
+        msg: "{{item}}"
+      with_items:
+        - "{{ansible_distribution}}" 
+        - "{{ansible_user}}"
+
+    # - name: Get installed packages
+    #   package_facts:
+    #     manager: auto
+    #   become: true
+    
+    # - name: Show installed packags
+    #   debug:
+    #     var: ansible_facts.packages
+
+    - include: os/{{ansible_distribution|lower}}.yml

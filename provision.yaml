@@ -1,6 +1,6 @@
 ---
 - name: "Provision Machine"
-  hosts: groupB
+  hosts: all
   serial: 1
 
   tasks:

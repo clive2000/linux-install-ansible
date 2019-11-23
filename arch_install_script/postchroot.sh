@@ -1,7 +1,7 @@
 
 ############################## In chroot #############################
 pacman -Syy
-pacman --noconfirm -S vim os-prober grub efibootmgr networkmanager openssh sudo
+pacman --noconfirm -S vim os-prober grub efibootmgr networkmanager openssh sudo python-pip
 
 sed -i 's/#zh_CN.UTF-8/zh_CN.UTF-8/g' /etc/locale.gen
 sed -i 's/#en_US.UTF-8/en_US.UTF-8/g' /etc/locale.gen
