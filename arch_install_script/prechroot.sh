@@ -10,7 +10,7 @@ pacman -Syy
 pacstrap /mnt base linux linux-firmware 
 
 # fstab
-genfstab -U /mnt » /mnt/etc/fstab
+genfstab -U /mnt >> /mnt/etc/fstab
 
 cp postchroot.sh /mnt/root
 
