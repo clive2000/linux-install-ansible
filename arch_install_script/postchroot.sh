@@ -20,7 +20,7 @@ case $n in
   *) ln -Sf /usr/share/zoneinfo/America/Toronto /etc/localtime;;
 esac
 
-hwclock –systohc –utc
+hwclock --systohc --utc
 
 case $(grep 'vendor_id' /proc/cpuinfo | head -1) in
 	*AuthenticAMD*)
@@ -86,6 +86,22 @@ case $n in
   2) install_xfce;;
   *) 
   echo "Done"
-  exit
   ;;
+esac
+
+# Openvmtools
+
+install_open_vm_tools() {
+	pacman --noconfirm -S open-vm-tools xf86-video-vmware gtkmm3
+	cp /etc/vmware-tools/vmware-user.desktop /etc/xdg/autostart/vmware-user.desktop
+}
+
+echo "Do you want to install a desktop environment?"
+echo "  1)Yes"
+echo "	2)No"
+
+read n
+case $n in
+  1) install_open_vm_tools;;
+  *) echo "Ok, Done";;
 esac
