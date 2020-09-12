@@ -93,10 +93,10 @@ esac
 
 install_open_vm_tools() {
 	pacman --noconfirm -S open-vm-tools xf86-video-vmware gtkmm3
-	cp /etc/vmware-tools/vmware-user.desktop /etc/xdg/autostart/vmware-user.desktop
+	#cp /etc/vmware-tools/vmware-user.desktop /etc/xdg/autostart/vmware-user.desktop
 }
 
-echo "Do you want to install a desktop environment?"
+echo "Do you want to install a open_vm_tools?"
 echo "  1)Yes"
 echo "	2)No"
 
