@@ -1,9 +1,8 @@
-set -x
 set -e
 
 ############################## In chroot #############################
 pacman -Syy
-pacman --noconfirm -S vim os-prober grub efibootmgr networkmanager openssh sudo python-pip
+pacman --noconfirm -S os-prober grub efibootmgr networkmanager openssh sudo
 
 sed -i 's/#zh_CN.UTF-8/zh_CN.UTF-8/g' /etc/locale.gen
 sed -i 's/#en_US.UTF-8/en_US.UTF-8/g' /etc/locale.gen
@@ -105,3 +104,36 @@ case $n in
   1) install_open_vm_tools;;
   *) echo "Ok, Done";;
 esac
+
+install_additional_packages() {
+	pacman --noconfirm -S python-pip git gcc zsh vim code docker htop tmux curl wget chromium firefox nano v2ray
+
+	# Add user to docker group
+	# Enable docker service
+	usermod -aG docker xhuang
+	systemctl enable docker.service
+
+	# chsh for xhuang to zsh,install oh-my-zsh
+	chsh -s /bin/zsh xhuang
+
+	# Install fontconfig, zshrc and vimrc
+sudo -i -u xhuang <<EOF
+wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O install.sh
+bash install.sh --unattended
+git clone --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime;
+sh ~/.vim_runtime/install_awesome_vimrc.sh;
+mkdir -p /home/xhuang/.config/fontconfig;
+wget -O /home/xhuang/.config/fontconfig/fonts.conf https://raw.githubusercontent.com/clive2000/dotfiles/master/.config/fontconfig/fonts.conf;
+fc-cache --force;
+EOF
+}
+
+
+while true; do
+    read -p "Do you wish to install additional packages?" yn
+    case $yn in
+        [Yy]* ) install_additional_packages; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
