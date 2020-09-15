@@ -94,6 +94,8 @@ install_open_vm_tools() {
 	pacman --noconfirm -S open-vm-tools xf86-video-vmware gtkmm3
 	#cp /etc/vmware-tools/vmware-user.desktop /etc/xdg/autostart/vmware-user.desktop
 	systemctl enable vmtoolsd.service
+	sed -i "s/MODULES=()/MODULES=(vsock vmw_vsock_vmci_transport vmw_balloon vmw_vmci vmwgfx)/g" /etc/mkinitcpio.conf
+	mkinitcpio -p linux
 }
 
 echo "Do you want to install a open_vm_tools?"
