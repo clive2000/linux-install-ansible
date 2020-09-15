@@ -93,6 +93,7 @@ esac
 install_open_vm_tools() {
 	pacman --noconfirm -S open-vm-tools xf86-video-vmware gtkmm3
 	#cp /etc/vmware-tools/vmware-user.desktop /etc/xdg/autostart/vmware-user.desktop
+	systemctl enable vmtoolsd.service
 }
 
 echo "Do you want to install a open_vm_tools?"
